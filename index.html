@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Piano Profissional | Sustain, Glissando, Sample</title>
+    <style>
+        * {
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+        body {
+            background: linear-gradient(145deg, #121826 0%, #0a0e14 100%);
+            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 16px;
+        }
+        .piano-app {
+            max-width: 1300px;
+            width: 100%;
+            background: rgba(0,0,0,0.5);
+            border-radius: 2rem;
+            backdrop-filter: blur(8px);
+            padding: 1.2rem;
+        }
+        .control-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: space-between;
+            background: #1e2432cc;
+            padding: 12px 16px;
+            border-radius: 48px;
+            margin-bottom: 1.5rem;
+        }
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        button {
+            background: #2c2f3a;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: white;
+            cursor: pointer;
+            transition: 0.08s linear;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.3);
+        }
+        button:active { transform: scale(0.96); }
+        .btn-rec { background: #c0392b; }
+        .btn-rec.recording { background: #e74c3c; animation: pulse 0.9s infinite; }
+        .btn-del { background: #b13e3e; }
+        .btn-primary { background: #2e7d32; }
+        .btn-metro { background: #2c6e6e; }
+        .metro-active { background: #00adb5; box-shadow: 0 0 8px cyan; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+
+        .edit-card {
+            background: #0f1420cc;
+            border-radius: 1.5rem;
+            padding: 0.8rem 1rem;
+            margin-bottom: 1.2rem;
+            color: #eee;
+        }
+        .slider-pair { display: flex; gap: 20px; flex-wrap: wrap; margin: 8px 0; }
+        .slider-item { flex: 1; min-width: 140px; }
+        input[type=range] { width: 100%; accent-color: #f39c12; }
+        .warning {
+            font-size: 0.7rem;
+            background: #f1c40f20;
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .piano-box {
+            overflow-x: auto;
+            overflow-y: visible;
+            border-radius: 24px;
+            background: #080c12;
+            padding: 15px 0;
+            position: relative;
+        }
+        .piano {
+            display: flex;
+            position: relative;
+            margin: 0 auto;
+            width: fit-content;
+            background: #0a0e14;
+            padding: 12px 15px;
+            min-width: 100%;
+        }
+        .keys-white {
+            display: flex;
+            position: relative;
+            z-index: 1;
+        }
+        .key-white {
+            width: 70px;
+            height: 230px;
+            background: linear-gradient(145deg, #fff6e8, #f7ecd9);
+            border-radius: 0 0 12px 12px;
+            border: 1px solid #bbb;
+            box-shadow: 0 5px 0 #b0a58e;
+            margin: 0 1px;
+            cursor: pointer;
+            transition: 0.04s linear;
+            flex-shrink: 0;
+        }
+        .keys-black {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .key-black {
+            position: absolute;
+            width: 46px;
+            height: 138px;
+            background: linear-gradient(145deg, #2c2c2c, #0f0f0f);
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 4px 0 #1a1a1a;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: 0.04s linear;
+        }
+        .key-white.active { background: #ffe1a0; transform: translateY(4px); box-shadow: 0 0px 0 #b0a58e; }
+        .key-black.active { background: #6c6c6c; transform: translateY(4px); box-shadow: 0 0px 0 #111; }
+        .info-tip {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 12px;
+            color: #ccc;
+        }
+        @media (max-width: 700px) {
+            .key-white { width: 55px; height: 180px; }
+            .key-black { width: 36px; height: 105px; }
+        }
+    </style>
+</head>
+<body>
+<div class="piano-app">
+    <div class="control-bar">
+        <div class="btn-group">
+            <button id="recordBtn" class="btn-rec">🎙️ Gravar</button>
+            <button id="stopRecordBtn" disabled>⏹️ Parar</button>
+            <button id="uploadBtn">📂 MP3/Som</button>
+            <input type="file" id="fileInput" accept="audio/*" style="display:none">
+        </div>
+        <div class="btn-group">
+            <button id="confirmSampleBtn" class="btn-primary">✅ Confirmar Sample</button>
+            <button id="deleteSampleBtn" class="btn-del">🗑️ Deletar (Voltar Piano)</button>
+        </div>
+        <div class="btn-group">
+            <button id="metroToggle" class="btn-metro">🥁 Metrônomo OFF</button>
+            <input type="range" id="bpmSlider" min="40" max="200" value="110" style="width:90px">
+            <span id="bpmValue" style="font-weight:bold">110</span>
+        </div>
+        <div class="btn-group">
+            <button id="leftOctave">◀ −1 Oitava</button>
+            <button id="rightOctave">➕1 Oitava ▶</button>
+        </div>
+    </div>
+
+    <div class="edit-card">
+        <div style="display:flex; justify-content: space-between;">
+            <strong>🎚️ Editar faixa (Início / Fim)</strong>
+            <span id="sampleStatus">Nenhum áudio carregado</span>
+        </div>
+        <div class="slider-pair">
+            <div class="slider-item">
+                <label>▶ Início: <span id="startLabel">0.00</span>s</label>
+                <input type="range" id="startSlider" min="0" max="1" step="0.001" value="0" disabled>
+            </div>
+            <div class="slider-item">
+                <label>⏹️ Fim: <span id="endLabel">0.00</span>s</label>
+                <input type="range" id="endSlider" min="0" max="1" step="0.001" value="1" disabled>
+            </div>
+        </div>
+        <div class="warning" id="messageArea">
+            💡 Recomendado: som >5s e <60s. Após ajustar, clique em CONFIRMAR.
+        </div>
+    </div>
+
+    <div class="piano-box">
+        <div class="piano" id="pianoKeyboard"></div>
+    </div>
+    <div class="info-tip">
+        🎹 Toque / deslize sobre as teclas (glissando). Setas movem 2 oitavas. Segure a tecla para sustentar o som. Solte para parar.
+    </div>
+</div>
+
+<script>
+    (function(){
+        // ---------- ÁUDIO ----------
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function resumeAudio() { if(audioCtx.state === 'suspended') audioCtx.resume(); }
+        document.body.addEventListener('click', resumeAudio, { once: true });
+        document.body.addEventListener('touchstart', resumeAudio, { once: true });
+
+        // ---------- CONSTANTES ----------
+        const TOTAL_NOTES = 108; // MIDI 0 a 107 (C0 a B8)
+        const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+        const BLACK_TO_WHITE = { 1:0, 3:1, 6:3, 8:4, 10:5 };
+
+        // Estado do piano
+        let currentMidiStart = 48;       // mostra C4 a B5
+        let sampleBuffer = null;          // buffer recortado ativo
+        let rawFullBuffer = null;
+        let sampleMode = false;
+        let trimStart = 0, trimEnd = 1;
+
+        // Controle de notas ativas (para sustain / parar ao soltar)
+        let activeNotes = new Map();      // midi -> { sources, gains }
+
+        // Elementos DOM
+        const pianoDiv = document.getElementById('pianoKeyboard');
+        const recordBtn = document.getElementById('recordBtn'), stopRecordBtn = document.getElementById('stopRecordBtn');
+        const uploadBtn = document.getElementById('uploadBtn'), fileInput = document.getElementById('fileInput');
+        const confirmBtn = document.getElementById('confirmSampleBtn'), deleteBtn = document.getElementById('deleteSampleBtn');
+        const leftOctave = document.getElementById('leftOctave'), rightOctave = document.getElementById('rightOctave');
+        const startSlider = document.getElementById('startSlider'), endSlider = document.getElementById('endSlider');
+        const startLabel = document.getElementById('startLabel'), endLabel = document.getElementById('endLabel');
+        const sampleStatus = document.getElementById('sampleStatus'), msgArea = document.getElementById('messageArea');
+        const metroToggle = document.getElementById('metroToggle'), bpmSlider = document.getElementById('bpmSlider'), bpmSpan = document.getElementById('bpmValue');
+
+        // Metrônomo
+        let metroInterval = null, metroActive = false, currentBPM = 110;
+
+        // Gravação
+        let mediaRecorder = null, recordedChunks = [], isRecording = false;
+
+        // ---------- FUNÇÕES DE ÁUDIO (SUSTAIN) ----------
+        function stopNote(midi) {
+            const note = activeNotes.get(midi);
+            if (!note) return;
+            const { sources, gains } = note;
+            // Fade out rápido
+            gains.forEach(g => {
+                try { g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.05); } catch(e) {}
+                setTimeout(() => { try { g.disconnect(); } catch(e) {} }, 80);
+            });
+            sources.forEach(src => { try { src.stop(); } catch(e) {} });
+            activeNotes.delete(midi);
+        }
+
+        function playNoteWithSustain(midi, velocity = 0.7) {
+            if (activeNotes.has(midi)) return; // já está tocando
+            resumeAudio();
+
+            let sources = [];
+            let gains = [];
+
+            if (sampleMode && sampleBuffer) {
+                const refMidi = 60; // Dó central (pitch neutro)
+                const ratio = Math.pow(2, (midi - refMidi) / 12);
+                const src = audioCtx.createBufferSource();
+                const gain = audioCtx.createGain();
+                src.buffer = sampleBuffer;
+                src.playbackRate.value = ratio;
+                gain.gain.value = velocity * 0.7;
+                src.connect(gain);
+                gain.connect(audioCtx.destination);
+                src.start();
+                sources.push(src);
+                gains.push(gain);
+            } else {
+                // Piano sintetizado
+                const freq = 440 * Math.pow(2, (midi - 69) / 12);
+                const osc1 = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                const gain1 = audioCtx.createGain();
+                const gain2 = audioCtx.createGain();
+                osc1.type = 'triangle';
+                osc2.type = 'sine';
+                osc1.frequency.value = freq;
+                osc2.frequency.value = freq * 2.0;
+                gain1.gain.value = 0.32;
+                gain2.gain.value = 0.12;
+                osc1.connect(gain1);
+                osc2.connect(gain2);
+                gain1.connect(audioCtx.destination);
+                gain2.connect(audioCtx.destination);
+                osc1.start();
+                osc2.start();
+                sources.push(osc1, osc2);
+                gains.push(gain1, gain2);
+            }
+            activeNotes.set(midi, { sources, gains });
+        }
+
+        // ---------- RENDERIZAÇÃO DO PIANO (COM PRETAS POSICIONADAS) ----------
+        let resizeObserver = null;
+        function renderPiano() {
+            const startMidi = currentMidiStart;
+            const endMidi = startMidi + 24; // 2 oitavas
+
+            const whiteKeys = [];
+            const blackKeys = [];
+            for (let midi = startMidi; midi < endMidi; midi++) {
+                const noteIdx = midi % 12;
+                if (NOTE_NAMES[noteIdx].includes('#')) blackKeys.push({ midi, noteIdx });
+                else whiteKeys.push({ midi, noteIdx });
+            }
+
+            pianoDiv.innerHTML = '';
+            pianoDiv.style.position = 'relative';
+
+            // Container das brancas
+            const whiteContainer = document.createElement('div');
+            whiteContainer.className = 'keys-white';
+            whiteContainer.style.display = 'flex';
+            whiteContainer.style.position = 'relative';
+            whiteContainer.style.zIndex = '1';
+            pianoDiv.appendChild(whiteContainer);
+
+            const whiteElements = [];
+            whiteKeys.forEach(key => {
+                const white = document.createElement('div');
+                white.className = 'key-white';
+                white.setAttribute('data-midi', key.midi);
+                whiteContainer.appendChild(white);
+                whiteElements.push(white);
+            });
+
+            // Container das pretas (posicionamento absoluto)
+            const blackContainer = document.createElement('div');
+            blackContainer.className = 'keys-black';
+            blackContainer.style.position = 'absolute';
+            blackContainer.style.top = '0';
+            blackContainer.style.left = '0';
+            blackContainer.style.right = '0';
+            blackContainer.style.pointerEvents = 'none';
+            pianoDiv.appendChild(blackContainer);
+
+            // Função para atualizar posições
+            const updateBlackPositions = () => {
+                blackKeys.forEach((black, idx) => {
+                    const whiteIdx = BLACK_TO_WHITE[black.noteIdx];
+                    if (whiteIdx !== undefined && whiteElements[whiteIdx]) {
+                        const whiteEl = whiteElements[whiteIdx];
+                        const whiteRect = whiteEl.getBoundingClientRect();
+                        const pianoRect = pianoDiv.getBoundingClientRect();
+                        const leftOffset = whiteRect.left - pianoRect.left;
+                        const whiteWidth = whiteEl.offsetWidth;
+                        // Cada preta deve ter seu próprio elemento (já criado)
+                        let blackDiv = blackContainer.children[idx];
+                        if (!blackDiv) {
+                            blackDiv = document.createElement('div');
+                            blackDiv.className = 'key-black';
+                            blackDiv.setAttribute('data-midi', black.midi);
+                            blackDiv.style.position = 'absolute';
+                            blackDiv.style.pointerEvents = 'auto';
+                            blackContainer.appendChild(blackDiv);
+                        }
+                        blackDiv.style.left = (leftOffset + whiteWidth - 23) + 'px';
+                        blackDiv.style.top = '0px';
+                    }
+                });
+            };
+
+            // Cria os elementos pretos (inicialmente sem posição)
+            blackKeys.forEach((black, idx) => {
+                const blackDiv = document.createElement('div');
+                blackDiv.className = 'key-black';
+                blackDiv.setAttribute('data-midi', black.midi);
+                blackDiv.style.position = 'absolute';
+                blackDiv.style.pointerEvents = 'auto';
+                blackContainer.appendChild(blackDiv);
+            });
+            updateBlackPositions();
+
+            // Observer para reposicionar ao redimensionar/scrolar
+            if (resizeObserver) resizeObserver.disconnect();
+            resizeObserver = new ResizeObserver(() => updateBlackPositions());
+            resizeObserver.observe(pianoDiv);
+            window.addEventListener('scroll', updateBlackPositions);
+            window.addEventListener('resize', updateBlackPositions);
+
+            attachEvents();
+        }
+
+        // ---------- EVENTOS DAS TECLAS (GLISSANDO + SUSTAIN) ----------
+        function attachEvents() {
+            const allKeys = document.querySelectorAll('.key-white, .key-black');
+            let dragActive = false;
+            let lastMidi = null;
+
+            const startNote = (midi, el) => {
+                playNoteWithSustain(midi);
+                animateKey(el);
+                lastMidi = midi;
+                dragActive = true;
+            };
+            const moveNote = (midi, el) => {
+                if (dragActive && lastMidi !== midi) {
+                    // Para a nota anterior antes de tocar a nova
+                    if (lastMidi !== null) stopNote(lastMidi);
+                    playNoteWithSustain(midi);
+                    animateKey(el);
+                    lastMidi = midi;
+                }
+            };
+            const endNotes = () => {
+                if (lastMidi !== null) stopNote(lastMidi);
+                dragActive = false;
+                lastMidi = null;
+            };
+
+            allKeys.forEach(key => {
+                const midi = parseInt(key.getAttribute('data-midi'));
+                if (isNaN(midi)) return;
+                key.addEventListener('pointerdown', (e) => {
+                    e.preventDefault();
+                    startNote(midi, key);
+                });
+                key.addEventListener('pointerenter', () => {
+                    if (dragActive) moveNote(midi, key);
+                });
+                // Para garantir que clique rápido (sem arrasto) também toque
+                key.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    playNoteWithSustain(midi);
+                    animateKey(key);
+                    setTimeout(() => stopNote(midi), 400); // para não ficar sustentando eternamente
+                });
+            });
+
+            window.addEventListener('pointerup', endNotes);
+            window.addEventListener('pointercancel', endNotes);
+        }
+
+        function animateKey(el) {
+            el.classList.add('active');
+            setTimeout(() => el.classList.remove('active'), 130);
+        }
+
+        function shiftOctave(delta) {
+            let newStart = currentMidiStart + delta * 12;
+            if (newStart < 0) newStart = 0;
+            if (newStart + 24 > TOTAL_NOTES) newStart = TOTAL_NOTES - 24;
+            currentMidiStart = newStart;
+            renderPiano();
+        }
+
+        // ---------- SAMPLE MANAGEMENT ----------
+        async function loadAudioFromBlob(blob) {
+            const ab = await blob.arrayBuffer();
+            return await audioCtx.decodeAudioData(ab);
+        }
+        function updateTrimUI() {
+            if (!rawFullBuffer) {
+                startSlider.disabled = true; endSlider.disabled = true;
+                sampleStatus.innerText = 'Nenhum áudio';
+                return;
+            }
+            const dur = rawFullBuffer.duration;
+            startSlider.max = dur; endSlider.max = dur;
+            startSlider.value = Math.min(trimStart, dur);
+            endSlider.value = Math.min(trimEnd, dur);
+            startLabel.innerText = trimStart.toFixed(2);
+            endLabel.innerText = trimEnd.toFixed(2);
+            startSlider.disabled = false; endSlider.disabled = false;
+            const cutLen = trimEnd - trimStart;
+            sampleStatus.innerText = `Bruto: ${dur.toFixed(1)}s | Corte: ${cutLen.toFixed(2)}s`;
+            if (cutLen > 60) msgArea.innerHTML = '⚠️ Trecho >60s! Reduza antes de confirmar.';
+            else if (cutLen < 5 && cutLen > 0) msgArea.innerHTML = '🎵 Recomendado >5s para melhor efeito.';
+            else msgArea.innerHTML = '✅ Sample pronto para confirmar. Toque e solte a tecla.';
+        }
+        function setRawBuffer(buf) {
+            rawFullBuffer = buf;
+            trimStart = 0;
+            trimEnd = buf.duration;
+            updateTrimUI();
+        }
+        function extractTrimmed() {
+            if (!rawFullBuffer) return null;
+            let start = Math.min(trimStart, rawFullBuffer.duration);
+            let end = Math.min(trimEnd, rawFullBuffer.duration);
+            if (end - start <= 0.05) return null;
+            const startFrame = Math.floor(start * rawFullBuffer.sampleRate);
+            const endFrame = Math.floor(end * rawFullBuffer.sampleRate);
+            const frames = endFrame - startFrame;
+            if (frames <= 0) return null;
+            const newBuf = audioCtx.createBuffer(rawFullBuffer.numberOfChannels, frames, rawFullBuffer.sampleRate);
+            for (let ch = 0; ch < rawFullBuffer.numberOfChannels; ch++) {
+                const data = rawFullBuffer.getChannelData(ch).slice(startFrame, endFrame);
+                newBuf.copyToChannel(data, ch, 0);
+            }
+            return newBuf;
+        }
+        function confirmSample() {
+            if (!rawFullBuffer) { msgArea.innerHTML = '❌ Nenhum áudio carregado.'; return; }
+            const cut = trimEnd - trimStart;
+            if (cut > 60) { msgArea.innerHTML = '❌ Trecho excede 60s. Ajuste os sliders.'; return; }
+            if (cut < 0.1) { msgArea.innerHTML = '❌ Trecho muito curto.'; return; }
+            const trimmed = extractTrimmed();
+            if (trimmed) {
+                sampleBuffer = trimmed;
+                sampleMode = true;
+                msgArea.innerHTML = '🎉 SAMPLE ATIVADO! As teclas tocam seu som com pitch shift e sustentam enquanto pressionadas.';
+                sampleStatus.innerText += ` | Sample ativo (${trimmed.duration.toFixed(2)}s)`;
+            } else msgArea.innerHTML = 'Erro ao recortar áudio.';
+        }
+        function deleteSample() {
+            sampleBuffer = null;
+            sampleMode = false;
+            msgArea.innerHTML = '🗑️ Sample removido. Piano clássico.';
+            sampleStatus.innerText = rawFullBuffer ? 'Modo piano (sample apagado)' : 'Modo piano clássico';
+        }
+
+        // ---------- GRAVAÇÃO E UPLOAD ----------
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                recordedChunks = [];
+                mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
+                mediaRecorder.onstop = async () => {
+                    const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+                    const buf = await loadAudioFromBlob(blob);
+                    setRawBuffer(buf);
+                    msgArea.innerHTML = '🎤 Gravação concluída! Ajuste os sliders e clique CONFIRMAR.';
+                    stream.getTracks().forEach(t => t.stop());
+                };
+                mediaRecorder.start();
+                isRecording = true;
+                recordBtn.classList.add('recording');
+                stopRecordBtn.disabled = false;
+                recordBtn.disabled = true;
+            } catch(e) { msgArea.innerHTML = 'Erro microfone: ' + e.message; }
+        }
+        function stopRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+                recordBtn.classList.remove('recording');
+                recordBtn.disabled = false;
+                stopRecordBtn.disabled = true;
+            }
+        }
+        function uploadAudioFile(file) {
+            const reader = new FileReader();
+            reader.onload = async (ev) => {
+                const ab = ev.target.result;
+                const decoded = await audioCtx.decodeAudioData(ab);
+                setRawBuffer(decoded);
+                msgArea.innerHTML = '📀 Arquivo carregado! Ajuste corte e confirme.';
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // ---------- METRÔNOMO ----------
+        function scheduleMetro() {
+            if (metroInterval) clearInterval(metroInterval);
+            if (!metroActive) return;
+            const intervalMs = (60 / currentBPM) * 1000;
+            metroInterval = setInterval(() => {
+                if (!metroActive) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = 880;
+                gain.gain.value = 0.12;
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.12);
+                osc.stop(audioCtx.currentTime + 0.12);
+            }, intervalMs);
+        }
+        function toggleMetronome() {
+            metroActive = !metroActive;
+            if (metroActive) {
+                scheduleMetro();
+                metroToggle.innerText = '🎵 Metrônomo ON';
+                metroToggle.classList.add('metro-active');
+            } else {
+                if (metroInterval) clearInterval(metroInterval);
+                metroInterval = null;
+                metroToggle.innerText = '🥁 Metrônomo OFF';
+                metroToggle.classList.remove('metro-active');
+            }
+        }
+        function setBPM(val) {
+            currentBPM = val;
+            bpmSpan.innerText = currentBPM;
+            if (metroActive) scheduleMetro();
+        }
+
+        // ---------- EVENT LISTENERS ----------
+        recordBtn.onclick = startRecording;
+        stopRecordBtn.onclick = stopRecording;
+        uploadBtn.onclick = () => fileInput.click();
+        fileInput.onchange = e => { if (e.target.files.length) uploadAudioFile(e.target.files[0]); };
+        confirmBtn.onclick = confirmSample;
+        deleteBtn.onclick = deleteSample;
+        leftOctave.onclick = () => shiftOctave(-1);
+        rightOctave.onclick = () => shiftOctave(1);
+        startSlider.oninput = e => {
+            if (!rawFullBuffer) return;
+            let v = parseFloat(e.target.value);
+            if (v >= endSlider.value) v = endSlider.value - 0.01;
+            trimStart = Math.max(0, v);
+            startLabel.innerText = trimStart.toFixed(2);
+            updateTrimUI();
+        };
+        endSlider.oninput = e => {
+            if (!rawFullBuffer) return;
+            let v = parseFloat(e.target.value);
+            if (v <= startSlider.value) v = startSlider.value + 0.01;
+            trimEnd = Math.min(rawFullBuffer.duration, v);
+            endLabel.innerText = trimEnd.toFixed(2);
+            updateTrimUI();
+        };
+        metroToggle.onclick = toggleMetronome;
+        bpmSlider.oninput = e => setBPM(parseInt(e.target.value));
+
+        // Inicialização
+        renderPiano();
+        msgArea.innerHTML = '🎹 Piano clássico. Grave/upload e confirme o sample. Segure a tecla para sustain, solte para parar.';
+    })();
+</script>
+</body>
+</html>
+```
