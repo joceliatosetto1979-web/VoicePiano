@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Piano Profissional | Sustain, Glissando, Sample</title>
+    <title>Piano Completo | Todas Oitavas | Sustain + Sample</title>
     <style>
         * {
             user-select: none;
@@ -21,35 +21,35 @@
             padding: 16px;
         }
         .piano-app {
-            max-width: 1300px;
+            max-width: 100%;
             width: 100%;
             background: rgba(0,0,0,0.5);
             border-radius: 2rem;
             backdrop-filter: blur(8px);
-            padding: 1.2rem;
+            padding: 1rem;
         }
         .control-bar {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 8px;
             justify-content: space-between;
             background: #1e2432cc;
-            padding: 12px 16px;
-            border-radius: 48px;
-            margin-bottom: 1.5rem;
+            padding: 10px 14px;
+            border-radius: 40px;
+            margin-bottom: 1rem;
         }
-        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
         button {
             background: #2c2f3a;
             border: none;
-            padding: 8px 18px;
+            padding: 6px 14px;
             border-radius: 40px;
             font-weight: 600;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: white;
             cursor: pointer;
             transition: 0.08s linear;
-            box-shadow: 0 3px 5px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         button:active { transform: scale(0.96); }
         .btn-rec { background: #c0392b; }
@@ -57,42 +57,45 @@
         .btn-del { background: #b13e3e; }
         .btn-primary { background: #2e7d32; }
         .btn-metro { background: #2c6e6e; }
-        .metro-active { background: #00adb5; box-shadow: 0 0 8px cyan; }
+        .metro-active { background: #00adb5; box-shadow: 0 0 6px cyan; }
+        .btn-instrument { background: #5d3a1a; }
+        .instrument-active { background: #d48d2b; box-shadow: 0 0 6px orange; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
         .edit-card {
             background: #0f1420cc;
-            border-radius: 1.5rem;
-            padding: 0.8rem 1rem;
-            margin-bottom: 1.2rem;
+            border-radius: 1.2rem;
+            padding: 0.6rem 0.8rem;
+            margin-bottom: 1rem;
             color: #eee;
         }
-        .slider-pair { display: flex; gap: 20px; flex-wrap: wrap; margin: 8px 0; }
-        .slider-item { flex: 1; min-width: 140px; }
+        .slider-pair { display: flex; gap: 15px; flex-wrap: wrap; margin: 5px 0; }
+        .slider-item { flex: 1; min-width: 120px; }
         input[type=range] { width: 100%; accent-color: #f39c12; }
         .warning {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             background: #f1c40f20;
-            padding: 4px 12px;
+            padding: 3px 8px;
             border-radius: 20px;
             display: inline-block;
         }
         .piano-box {
             overflow-x: auto;
             overflow-y: visible;
-            border-radius: 24px;
+            border-radius: 20px;
             background: #080c12;
             padding: 15px 0;
             position: relative;
+            cursor: grab;
         }
+        .piano-box:active { cursor: grabbing; }
         .piano {
             display: flex;
             position: relative;
             margin: 0 auto;
             width: fit-content;
             background: #0a0e14;
-            padding: 12px 15px;
-            min-width: 100%;
+            padding: 8px 12px;
         }
         .keys-white {
             display: flex;
@@ -110,6 +113,21 @@
             cursor: pointer;
             transition: 0.04s linear;
             flex-shrink: 0;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #555;
+            text-shadow: 0 1px 0 white;
+        }
+        .key-white.active {
+            background: #ffe1a0;
+            transform: translateY(4px);
+            box-shadow: 0 0px 0 #b0a58e;
         }
         .keys-black {
             position: absolute;
@@ -129,18 +147,30 @@
             cursor: pointer;
             pointer-events: auto;
             transition: 0.04s linear;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            color: #ddd;
+            text-shadow: 0 1px 0 black;
         }
-        .key-white.active { background: #ffe1a0; transform: translateY(4px); box-shadow: 0 0px 0 #b0a58e; }
-        .key-black.active { background: #6c6c6c; transform: translateY(4px); box-shadow: 0 0px 0 #111; }
+        .key-black.active {
+            background: #6c6c6c;
+            transform: translateY(4px);
+            box-shadow: 0 0px 0 #111;
+        }
         .info-tip {
             font-size: 0.7rem;
             text-align: center;
-            margin-top: 12px;
+            margin-top: 10px;
             color: #ccc;
         }
         @media (max-width: 700px) {
-            .key-white { width: 55px; height: 180px; }
-            .key-black { width: 36px; height: 105px; }
+            .key-white { width: 55px; height: 180px; font-size: 9px; }
+            .key-black { width: 36px; height: 105px; font-size: 8px; }
         }
     </style>
 </head>
@@ -150,28 +180,29 @@
         <div class="btn-group">
             <button id="recordBtn" class="btn-rec">🎙️ Gravar</button>
             <button id="stopRecordBtn" disabled>⏹️ Parar</button>
-            <button id="uploadBtn">📂 MP3/Som</button>
+            <button id="uploadBtn">📂 MP3/WAV</button>
             <input type="file" id="fileInput" accept="audio/*" style="display:none">
         </div>
         <div class="btn-group">
             <button id="confirmSampleBtn" class="btn-primary">✅ Confirmar Sample</button>
-            <button id="deleteSampleBtn" class="btn-del">🗑️ Deletar (Voltar Piano)</button>
+            <button id="deleteSampleBtn" class="btn-del">🗑️ Deletar Sample</button>
         </div>
         <div class="btn-group">
             <button id="metroToggle" class="btn-metro">🥁 Metrônomo OFF</button>
-            <input type="range" id="bpmSlider" min="40" max="200" value="110" style="width:90px">
-            <span id="bpmValue" style="font-weight:bold">110</span>
+            <input type="range" id="bpmSlider" min="40" max="200" value="110" style="width:80px">
+            <span id="bpmValue">110</span>
         </div>
         <div class="btn-group">
-            <button id="leftOctave">◀ −1 Oitava</button>
-            <button id="rightOctave">➕1 Oitava ▶</button>
+            <button id="instClassic" class="btn-instrument instrument-active">🎹 Clássico</button>
+            <button id="instElectric" class="btn-instrument">⚡ Elétrico</button>
+            <button id="instOrgan" class="btn-instrument">🎵 Órgão</button>
         </div>
     </div>
 
     <div class="edit-card">
         <div style="display:flex; justify-content: space-between;">
             <strong>🎚️ Editar faixa (Início / Fim)</strong>
-            <span id="sampleStatus">Nenhum áudio carregado</span>
+            <span id="sampleStatus">Nenhum áudio</span>
         </div>
         <div class="slider-pair">
             <div class="slider-item">
@@ -184,7 +215,7 @@
             </div>
         </div>
         <div class="warning" id="messageArea">
-            💡 Recomendado: som >5s e <60s. Após ajustar, clique em CONFIRMAR.
+            💡 Som >5s e <60s. Após ajustar, clique CONFIRMAR. Toque e segure para sustain.
         </div>
     </div>
 
@@ -192,7 +223,7 @@
         <div class="piano" id="pianoKeyboard"></div>
     </div>
     <div class="info-tip">
-        🎹 Toque / deslize sobre as teclas (glissando). Setas movem 2 oitavas. Segure a tecla para sustentar o som. Solte para parar.
+        🎹 Role para ver todas as 9 oitavas (C0 a B8). Arraste para glissando. Segure a tecla para sustentar o som.
     </div>
 </div>
 
@@ -205,38 +236,98 @@
         document.body.addEventListener('touchstart', resumeAudio, { once: true });
 
         // ---------- CONSTANTES ----------
-        const TOTAL_NOTES = 108; // MIDI 0 a 107 (C0 a B8)
+        const TOTAL_NOTES = 108;  // C0 (0) a B8 (107)
         const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
         const BLACK_TO_WHITE = { 1:0, 3:1, 6:3, 8:4, 10:5 };
-
-        // Estado do piano
-        let currentMidiStart = 48;       // mostra C4 a B5
-        let sampleBuffer = null;          // buffer recortado ativo
+        
+        // Estado do instrumento e sample
+        let instrumentType = 'classic';
+        let sampleBuffer = null;
         let rawFullBuffer = null;
         let sampleMode = false;
         let trimStart = 0, trimEnd = 1;
-
-        // Controle de notas ativas (para sustain / parar ao soltar)
-        let activeNotes = new Map();      // midi -> { sources, gains }
-
+        
+        // Notas ativas (para sustain)
+        let activeNotes = new Map(); // midi -> { sources, gains }
+        
         // Elementos DOM
         const pianoDiv = document.getElementById('pianoKeyboard');
         const recordBtn = document.getElementById('recordBtn'), stopRecordBtn = document.getElementById('stopRecordBtn');
         const uploadBtn = document.getElementById('uploadBtn'), fileInput = document.getElementById('fileInput');
         const confirmBtn = document.getElementById('confirmSampleBtn'), deleteBtn = document.getElementById('deleteSampleBtn');
-        const leftOctave = document.getElementById('leftOctave'), rightOctave = document.getElementById('rightOctave');
         const startSlider = document.getElementById('startSlider'), endSlider = document.getElementById('endSlider');
         const startLabel = document.getElementById('startLabel'), endLabel = document.getElementById('endLabel');
         const sampleStatus = document.getElementById('sampleStatus'), msgArea = document.getElementById('messageArea');
         const metroToggle = document.getElementById('metroToggle'), bpmSlider = document.getElementById('bpmSlider'), bpmSpan = document.getElementById('bpmValue');
-
+        const instClassic = document.getElementById('instClassic'), instElectric = document.getElementById('instElectric'), instOrgan = document.getElementById('instOrgan');
+        
         // Metrônomo
         let metroInterval = null, metroActive = false, currentBPM = 110;
-
+        
         // Gravação
         let mediaRecorder = null, recordedChunks = [], isRecording = false;
-
-        // ---------- FUNÇÕES DE ÁUDIO (SUSTAIN) ----------
+        
+        // ---------- SÍNTESE DE ÁUDIO (com suporte a diferentes timbres) ----------
+        function playSynthesizer(midi, velocity = 0.7) {
+            const freq = 440 * Math.pow(2, (midi - 69) / 12);
+            let sources = [];
+            let gains = [];
+            
+            if (instrumentType === 'classic') {
+                const osc1 = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                const gain1 = audioCtx.createGain();
+                const gain2 = audioCtx.createGain();
+                osc1.type = 'triangle';
+                osc2.type = 'sine';
+                osc1.frequency.value = freq;
+                osc2.frequency.value = freq * 2.0;
+                gain1.gain.value = 0.32 * velocity;
+                gain2.gain.value = 0.12 * velocity;
+                osc1.connect(gain1);
+                osc2.connect(gain2);
+                gain1.connect(audioCtx.destination);
+                gain2.connect(audioCtx.destination);
+                osc1.start();
+                osc2.start();
+                sources.push(osc1, osc2);
+                gains.push(gain1, gain2);
+            } 
+            else if (instrumentType === 'electric') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                gain.gain.value = 0.45 * velocity;
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                sources.push(osc);
+                gains.push(gain);
+            } 
+            else if (instrumentType === 'organ') {
+                const osc1 = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                const gain1 = audioCtx.createGain();
+                const gain2 = audioCtx.createGain();
+                osc1.type = 'square';
+                osc2.type = 'triangle';
+                osc1.frequency.value = freq;
+                osc2.frequency.value = freq * 1.5;
+                gain1.gain.value = 0.28 * velocity;
+                gain2.gain.value = 0.18 * velocity;
+                osc1.connect(gain1);
+                osc2.connect(gain2);
+                gain1.connect(audioCtx.destination);
+                gain2.connect(audioCtx.destination);
+                osc1.start();
+                osc2.start();
+                sources.push(osc1, osc2);
+                gains.push(gain1, gain2);
+            }
+            return { sources, gains };
+        }
+        
         function stopNote(midi) {
             const note = activeNotes.get(midi);
             if (!note) return;
@@ -249,16 +340,16 @@
             sources.forEach(src => { try { src.stop(); } catch(e) {} });
             activeNotes.delete(midi);
         }
-
+        
         function playNoteWithSustain(midi, velocity = 0.7) {
             if (activeNotes.has(midi)) return; // já está tocando
             resumeAudio();
-
+            
             let sources = [];
             let gains = [];
-
+            
             if (sampleMode && sampleBuffer) {
-                const refMidi = 60; // Dó central (pitch neutro)
+                const refMidi = 60; // Dó central
                 const ratio = Math.pow(2, (midi - refMidi) / 12);
                 const src = audioCtx.createBufferSource();
                 const gain = audioCtx.createGain();
@@ -271,65 +362,60 @@
                 sources.push(src);
                 gains.push(gain);
             } else {
-                // Piano sintetizado
-                const freq = 440 * Math.pow(2, (midi - 69) / 12);
-                const osc1 = audioCtx.createOscillator();
-                const osc2 = audioCtx.createOscillator();
-                const gain1 = audioCtx.createGain();
-                const gain2 = audioCtx.createGain();
-                osc1.type = 'triangle';
-                osc2.type = 'sine';
-                osc1.frequency.value = freq;
-                osc2.frequency.value = freq * 2.0;
-                gain1.gain.value = 0.32;
-                gain2.gain.value = 0.12;
-                osc1.connect(gain1);
-                osc2.connect(gain2);
-                gain1.connect(audioCtx.destination);
-                gain2.connect(audioCtx.destination);
-                osc1.start();
-                osc2.start();
-                sources.push(osc1, osc2);
-                gains.push(gain1, gain2);
+                const synth = playSynthesizer(midi, velocity);
+                sources = synth.sources;
+                gains = synth.gains;
             }
             activeNotes.set(midi, { sources, gains });
         }
-
-        // ---------- RENDERIZAÇÃO DO PIANO (COM PRETAS POSICIONADAS) ----------
-        let resizeObserver = null;
-        function renderPiano() {
-            const startMidi = currentMidiStart;
-            const endMidi = startMidi + 24; // 2 oitavas
-
+        
+        // ---------- RENDERIZAÇÃO DO PIANO (TODAS OITAVAS) ----------
+        function renderFullPiano() {
+            // Gerar todas as teclas de MIDI 0 a 107
             const whiteKeys = [];
             const blackKeys = [];
-            for (let midi = startMidi; midi < endMidi; midi++) {
+            for (let midi = 0; midi < TOTAL_NOTES; midi++) {
                 const noteIdx = midi % 12;
-                if (NOTE_NAMES[noteIdx].includes('#')) blackKeys.push({ midi, noteIdx });
-                else whiteKeys.push({ midi, noteIdx });
+                const octave = Math.floor(midi / 12) - 1; // C0 = -1? Ajuste: MIDI 0 = C-1, mas visualmente mostramos C0
+                let displayOctave = octave;
+                if (midi < 12) displayOctave = 0;
+                else if (midi >= 12 && midi < 24) displayOctave = 1;
+                else if (midi >= 24 && midi < 36) displayOctave = 2;
+                else if (midi >= 36 && midi < 48) displayOctave = 3;
+                else if (midi >= 48 && midi < 60) displayOctave = 4;
+                else if (midi >= 60 && midi < 72) displayOctave = 5;
+                else if (midi >= 72 && midi < 84) displayOctave = 6;
+                else if (midi >= 84 && midi < 96) displayOctave = 7;
+                else displayOctave = 8;
+                const noteName = NOTE_NAMES[noteIdx];
+                const label = `${noteName}${displayOctave}`;
+                if (NOTE_NAMES[noteIdx].includes('#')) {
+                    blackKeys.push({ midi, noteIdx, label });
+                } else {
+                    whiteKeys.push({ midi, noteIdx, label });
+                }
             }
-
+            
             pianoDiv.innerHTML = '';
             pianoDiv.style.position = 'relative';
-
-            // Container das brancas
+            
             const whiteContainer = document.createElement('div');
             whiteContainer.className = 'keys-white';
             whiteContainer.style.display = 'flex';
             whiteContainer.style.position = 'relative';
             whiteContainer.style.zIndex = '1';
             pianoDiv.appendChild(whiteContainer);
-
+            
             const whiteElements = [];
             whiteKeys.forEach(key => {
                 const white = document.createElement('div');
                 white.className = 'key-white';
                 white.setAttribute('data-midi', key.midi);
+                white.innerHTML = `<span style="margin-top:auto;">${key.label}</span>`;
                 whiteContainer.appendChild(white);
                 whiteElements.push(white);
             });
-
-            // Container das pretas (posicionamento absoluto)
+            
             const blackContainer = document.createElement('div');
             blackContainer.className = 'keys-black';
             blackContainer.style.position = 'absolute';
@@ -338,10 +424,12 @@
             blackContainer.style.right = '0';
             blackContainer.style.pointerEvents = 'none';
             pianoDiv.appendChild(blackContainer);
-
-            // Função para atualizar posições
+            
+            // Mapeamento para posicionar pretas
             const updateBlackPositions = () => {
-                blackKeys.forEach((black, idx) => {
+                // Limpa container de pretas
+                blackContainer.innerHTML = '';
+                blackKeys.forEach(black => {
                     const whiteIdx = BLACK_TO_WHITE[black.noteIdx];
                     if (whiteIdx !== undefined && whiteElements[whiteIdx]) {
                         const whiteEl = whiteElements[whiteIdx];
@@ -349,70 +437,64 @@
                         const pianoRect = pianoDiv.getBoundingClientRect();
                         const leftOffset = whiteRect.left - pianoRect.left;
                         const whiteWidth = whiteEl.offsetWidth;
-                        // Cada preta deve ter seu próprio elemento (já criado)
-                        let blackDiv = blackContainer.children[idx];
-                        if (!blackDiv) {
-                            blackDiv = document.createElement('div');
-                            blackDiv.className = 'key-black';
-                            blackDiv.setAttribute('data-midi', black.midi);
-                            blackDiv.style.position = 'absolute';
-                            blackDiv.style.pointerEvents = 'auto';
-                            blackContainer.appendChild(blackDiv);
-                        }
+                        const blackDiv = document.createElement('div');
+                        blackDiv.className = 'key-black';
+                        blackDiv.setAttribute('data-midi', black.midi);
+                        blackDiv.innerHTML = `<span style="margin-top:auto;">${black.label}</span>`;
+                        blackDiv.style.position = 'absolute';
+                        blackDiv.style.pointerEvents = 'auto';
                         blackDiv.style.left = (leftOffset + whiteWidth - 23) + 'px';
                         blackDiv.style.top = '0px';
+                        blackContainer.appendChild(blackDiv);
                     }
                 });
             };
-
-            // Cria os elementos pretos (inicialmente sem posição)
-            blackKeys.forEach((black, idx) => {
-                const blackDiv = document.createElement('div');
-                blackDiv.className = 'key-black';
-                blackDiv.setAttribute('data-midi', black.midi);
-                blackDiv.style.position = 'absolute';
-                blackDiv.style.pointerEvents = 'auto';
-                blackContainer.appendChild(blackDiv);
-            });
+            
             updateBlackPositions();
-
             // Observer para reposicionar ao redimensionar/scrolar
-            if (resizeObserver) resizeObserver.disconnect();
-            resizeObserver = new ResizeObserver(() => updateBlackPositions());
+            let resizeObserver = new ResizeObserver(() => updateBlackPositions());
             resizeObserver.observe(pianoDiv);
             window.addEventListener('scroll', updateBlackPositions);
             window.addEventListener('resize', updateBlackPositions);
-
-            attachEvents();
+            
+            attachEventsToAllKeys();
         }
-
-        // ---------- EVENTOS DAS TECLAS (GLISSANDO + SUSTAIN) ----------
-        function attachEvents() {
+        
+              // ---------- EVENTOS DAS TECLAS (GLISSANDO + SUSTAIN) ----------
+        function attachEventsToAllKeys() {
             const allKeys = document.querySelectorAll('.key-white, .key-black');
             let dragActive = false;
             let lastMidi = null;
-
+            
             const startNote = (midi, el) => {
                 playNoteWithSustain(midi);
-                animateKey(el);
+                el.classList.add('active');
                 lastMidi = midi;
                 dragActive = true;
             };
             const moveNote = (midi, el) => {
                 if (dragActive && lastMidi !== midi) {
-                    // Para a nota anterior antes de tocar a nova
                     if (lastMidi !== null) stopNote(lastMidi);
                     playNoteWithSustain(midi);
-                    animateKey(el);
+                    el.classList.add('active');
+                    // Remove active da anterior
+                    if (lastMidi !== null) {
+                        const prevKey = document.querySelector(`.key-white[data-midi='${lastMidi}'], .key-black[data-midi='${lastMidi}']`);
+                        if (prevKey) prevKey.classList.remove('active');
+                    }
                     lastMidi = midi;
                 }
             };
             const endNotes = () => {
-                if (lastMidi !== null) stopNote(lastMidi);
+                if (lastMidi !== null) {
+                    stopNote(lastMidi);
+                    const lastKey = document.querySelector(`.key-white[data-midi='${lastMidi}'], .key-black[data-midi='${lastMidi}']`);
+                    if (lastKey) lastKey.classList.remove('active');
+                }
                 dragActive = false;
                 lastMidi = null;
             };
-
+            
             allKeys.forEach(key => {
                 const midi = parseInt(key.getAttribute('data-midi'));
                 if (isNaN(midi)) return;
@@ -423,32 +505,22 @@
                 key.addEventListener('pointerenter', () => {
                     if (dragActive) moveNote(midi, key);
                 });
-                // Para garantir que clique rápido (sem arrasto) também toque
+                // Para clique rápido sem arrasto
                 key.addEventListener('click', (e) => {
                     e.stopPropagation();
                     playNoteWithSustain(midi);
-                    animateKey(key);
-                    setTimeout(() => stopNote(midi), 400); // para não ficar sustentando eternamente
+                    key.classList.add('active');
+                    setTimeout(() => {
+                        stopNote(midi);
+                        key.classList.remove('active');
+                    }, 300); // sustain rápido para clique
                 });
             });
-
+            
             window.addEventListener('pointerup', endNotes);
             window.addEventListener('pointercancel', endNotes);
         }
-
-        function animateKey(el) {
-            el.classList.add('active');
-            setTimeout(() => el.classList.remove('active'), 130);
-        }
-
-        function shiftOctave(delta) {
-            let newStart = currentMidiStart + delta * 12;
-            if (newStart < 0) newStart = 0;
-            if (newStart + 24 > TOTAL_NOTES) newStart = TOTAL_NOTES - 24;
-            currentMidiStart = newStart;
-            renderPiano();
-        }
-
+        
         // ---------- SAMPLE MANAGEMENT ----------
         async function loadAudioFromBlob(blob) {
             const ab = await blob.arrayBuffer();
@@ -504,7 +576,7 @@
             if (trimmed) {
                 sampleBuffer = trimmed;
                 sampleMode = true;
-                msgArea.innerHTML = '🎉 SAMPLE ATIVADO! As teclas tocam seu som com pitch shift e sustentam enquanto pressionadas.';
+                msgArea.innerHTML = '🎉 SAMPLE ATIVADO! As teclas tocam seu som com pitch shift e sustentam.';
                 sampleStatus.innerText += ` | Sample ativo (${trimmed.duration.toFixed(2)}s)`;
             } else msgArea.innerHTML = 'Erro ao recortar áudio.';
         }
@@ -514,7 +586,7 @@
             msgArea.innerHTML = '🗑️ Sample removido. Piano clássico.';
             sampleStatus.innerText = rawFullBuffer ? 'Modo piano (sample apagado)' : 'Modo piano clássico';
         }
-
+        
         // ---------- GRAVAÇÃO E UPLOAD ----------
         async function startRecording() {
             try {
@@ -555,7 +627,7 @@
             };
             reader.readAsArrayBuffer(file);
         }
-
+        
         // ---------- METRÔNOMO ----------
         function scheduleMetro() {
             if (metroInterval) clearInterval(metroInterval);
@@ -593,7 +665,22 @@
             bpmSpan.innerText = currentBPM;
             if (metroActive) scheduleMetro();
         }
-
+        
+        // ---------- INSTRUMENTOS ----------
+        function setInstrument(type) {
+            instrumentType = type;
+            instClassic.classList.remove('instrument-active');
+            instElectric.classList.remove('instrument-active');
+            instOrgan.classList.remove('instrument-active');
+            if (type === 'classic') instClassic.classList.add('instrument-active');
+            if (type === 'electric') instElectric.classList.add('instrument-active');
+            if (type === 'organ') instOrgan.classList.add('instrument-active');
+            // Se estava em sample mode, desativa sample ao trocar instrumento? Melhor deixar sample ativo até deletar.
+            if (sampleMode) {
+                msgArea.innerHTML = '🎹 Instrumento alterado. Para usar sample, mantenha-o confirmado.';
+            }
+        }
+        
         // ---------- EVENT LISTENERS ----------
         recordBtn.onclick = startRecording;
         stopRecordBtn.onclick = stopRecording;
@@ -601,8 +688,6 @@
         fileInput.onchange = e => { if (e.target.files.length) uploadAudioFile(e.target.files[0]); };
         confirmBtn.onclick = confirmSample;
         deleteBtn.onclick = deleteSample;
-        leftOctave.onclick = () => shiftOctave(-1);
-        rightOctave.onclick = () => shiftOctave(1);
         startSlider.oninput = e => {
             if (!rawFullBuffer) return;
             let v = parseFloat(e.target.value);
@@ -621,10 +706,13 @@
         };
         metroToggle.onclick = toggleMetronome;
         bpmSlider.oninput = e => setBPM(parseInt(e.target.value));
-
+        instClassic.onclick = () => setInstrument('classic');
+        instElectric.onclick = () => setInstrument('electric');
+        instOrgan.onclick = () => setInstrument('organ');
+        
         // Inicialização
-        renderPiano();
-        msgArea.innerHTML = '🎹 Piano clássico. Grave/upload e confirme o sample. Segure a tecla para sustain, solte para parar.';
+        renderFullPiano();
+        msgArea.innerHTML = '🎹 Piano completo. Grave ou envie um áudio (MP3/WAV/OGG) e confirme para usar como sample. Segure a tecla para sustain.';
     })();
 </script>
 </body>
