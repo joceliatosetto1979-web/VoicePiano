@@ -229,6 +229,30 @@
 
 <script>
     (function(){
+           function countFingers(landmarks) {
+    let count = 0;
+    const tips = [8, 12, 16, 20];
+    const pips = [6, 10, 14, 18];
+
+    // Conta os 4 dedos (indicador, médio, anelar e mínimo)
+    for (let i = 0; i < tips.length; i++) {
+        if (landmarks[tips[i]].y < landmarks[pips[i]].y) count++;
+    }
+    
+    // Verificação mais rigorosa para o polegar (evita falsos positivos)
+    const thumbTip = landmarks[4];
+    const thumbBase = landmarks[2];
+    
+    // Só conta o polegar se ele estiver realmente esticado para o lado e para cima
+    if (Math.abs(thumbTip.x - thumbBase.x) > 0.06) {
+        if (thumbTip.y < landmarks[3].y) {
+            count++;
+        }
+    }
+    
+    return count;
+    }
+    
         // ---------- ÁUDIO ----------
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function resumeAudio() { if(audioCtx.state === 'suspended') audioCtx.resume(); }
